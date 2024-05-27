@@ -122,6 +122,18 @@ document.addEventListener("click", (e) => {
     mouseY = Math.floor(e.clientY - canvas_rect.top);
 });
 
+document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    let canvas_rect = canvas.getBoundingClientRect();
+    x = Math.floor(e.clientX - canvas_rect.left);
+    y = Math.floor(e.clientY - canvas_rect.top);
+
+    let newCircle = new Circle(x, y, 100, "red", "hey", 3, src);
+    circles.push(newCircle);
+    mouseX = -1;
+    mouseY = -1;
+});
+
 let updateCircle = function () {
     requestAnimationFrame(updateCircle);
 
