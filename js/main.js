@@ -1,7 +1,7 @@
 const canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
+let score = 0;
 
-//Obtiene las dimensiones de la pantalla actual
 const canvas_container = canvas.parentElement;
 const window_height = canvas_container.clientHeight;
 const window_width = canvas_container.clientWidth;
@@ -36,6 +36,13 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.y = e.clientY - rect.top - cursor.image.height / 2;
 });
 
+const intro = document.getElementById("intro");
+const start = document.getElementById("start");
+start.addEventListener("click", (e) => {
+    intro.style.display = "none";
+    canvas.style.display = "block";
+});
+
 const FRUITS = [
     "assets/img/fruits/apple.png",
     "assets/img/fruits/orange.png",
@@ -49,6 +56,8 @@ const TREES = [
     "assets/img/fruits/peach-tree.png",
     "assets/img/fruits/pear-tree.png",
 ];
+
+const CROW = "assets/img/crows/crow.png";
 
 const TREE_WIDTH = 495;
 const TREE_HEIGHT = 600;
@@ -111,7 +120,7 @@ class Fruit {
 }
 
 class Tree {
-    constructor(x, y, treeIndex, factor, fruits) {
+    constructor(x, y, treeIndex, factor, fruits, delay) {
         this.x = x;
         this.y = y;
         this.factor = factor;
@@ -119,6 +128,7 @@ class Tree {
         this.img = new Image();
         this.img.src = TREES[treeIndex];
         this.fruits = fruits;
+        this.delay = delay;
     }
 
     draw(context) {
@@ -133,7 +143,7 @@ class Tree {
 
     update(context) {
         this.draw(context);
-        if (Math.random() < 0.005) {
+        if (Math.random() < this.delay) {
             let r = getRandomBetween(20, 80 * this.factor);
             let x = getRandomBetween(this.x, this.x + TREE_WIDTH * this.factor);
             let y = getRandomBetween(
@@ -154,6 +164,41 @@ class Tree {
             this.y > rect.y + TREE_WIDTH * rect.factor
         );
     }
+}
+
+class Crow {
+    constructor(x, y, image, speed, direction) {
+        this.x = x;
+        this.y = y;
+        this.imagePath = image;
+        this.image = new Image();
+        this.image.src = this.imagePath;
+        this.speed = speed;
+        this.direction = direction;
+    }
+
+    draw(context) {
+        context.drawImage(this.image, this.x, this.y, 150, 150);
+    }
+
+    update(context) {
+        this.draw(context);
+        if (this.direction === -1) {
+            this.x -= this.speed;
+        } else if (this.direction === 1) {
+            this.x += this.speed;
+        }
+    }
+}
+
+let crows = [];
+
+function isCircleInsideRect(cx, cy, radius, rx, ry, rw, rh) {
+    if (cx - radius < rx) return false;
+    if (cx + radius > rx + rw) return false;
+    if (cy - radius < ry) return false;
+    if (cy + radius > ry + rh) return false;
+    return true;
 }
 
 function getRandomColor() {
@@ -189,12 +234,12 @@ for (let i = 0; i < 0; i++) {
 }
 
 let trees = [];
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 4; i++) {
     let factor = getRandomBetween(0.3, 0.6);
     let idx = Math.floor(Math.random() * TREES.length);
     let overlap = false;
     let newTree;
-    const MAX_ATTEMPTS = 100;
+    const MAX_ATTEMPTS = 200;
     let attempt = 0;
     do {
         if (attempt >= MAX_ATTEMPTS) break;
@@ -203,7 +248,7 @@ for (let i = 0; i < 3; i++) {
             window_height / 2,
             window_height - TREE_HEIGHT
         );
-        newTree = new Tree(randomX, randomY, idx, factor);
+        newTree = new Tree(randomX, randomY, idx, factor, fruits, 0.005);
         overlap = trees.some((tree) => tree.isOverlapping(newTree));
         attempt++;
     } while (overlap);
@@ -213,7 +258,7 @@ for (let i = 0; i < 3; i++) {
 let mouseX;
 let mouseY;
 
-document.addEventListener("click", (e) => {
+document.addEventListener("mousedown", (e) => {
     let canvas_rect = canvas.getBoundingClientRect();
     mouseX = Math.floor(e.clientX - canvas_rect.left);
     mouseY = Math.floor(e.clientY - canvas_rect.top);
@@ -232,6 +277,20 @@ let updateGame = function () {
     trees.forEach((tree) => {
         tree.update(ctx);
     });
+
+    if (Math.random() > 0.99) {
+        let crow;
+        if (Math.random() > 0.5) {
+            let y = Math.floor((3 * (Math.random() * window_height)) / 4);
+            let s = Math.floor(Math.random() * 8) + 2;
+            crow = new Crow(window_width + 300, y, CROW, s, -1);
+        } else {
+            let y = Math.floor((3 * (Math.random() * window_height)) / 4);
+            let s = Math.floor(Math.random() * 8) + 2;
+            crow = new Crow(-300, y, CROW, s, 1);
+        }
+        crows.push(crow);
+    }
 
     let index = 0;
     fruits.forEach((fruit) => {
@@ -261,7 +320,7 @@ let updateGame = function () {
             fruit.radius + cursor.radius
         ) {
             console.log("Picked up fruit");
-            fruit.color = getRandomColor();
+            score += 10;
             fruits.splice(index, 1);
             mouseX = -1;
             mouseY = -1;
@@ -279,6 +338,26 @@ let updateGame = function () {
     });
 
     cursor.draw(ctx);
+
+    crows.forEach((crow) => {
+        crow.update(ctx);
+        if (
+            isCircleInsideRect(
+                mouseX,
+                mouseY,
+                cursor.radius,
+                crow.x,
+                crow.y,
+                crow.image.width,
+                crow.image.height
+            )
+        ) {
+            score -= 50;
+        }
+    });
+
+    ctx.font = "48px Verdana";
+    ctx.fillText(`Score: ${score}`, window_width / 2, 60);
 };
 
 updateGame();
