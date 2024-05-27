@@ -108,7 +108,7 @@ class Tree {
 
     update(context) {
         this.draw(context);
-        if (Math.random() < 0.015) {
+        if (Math.random() < 0.005) {
             let r = getRandomBetween(20, 80 * this.factor);
             let x = getRandomBetween(this.x, this.x + TREE_WIDTH * this.factor);
             let y = getRandomBetween(
