@@ -17,8 +17,21 @@
         <h3 class="m-3 fw-bold">Fresh and Fruity</h3>
     </header>
 
-    <main class="container d-flex flex-row justify-content-evenly">
+    <main class="container d-flex flex-column justify-content-center">
         <canvas id="canvas"></canvas>
+
+        <div id="intro" class="container d-flex flex-column justify-content-evenly align-items-center fs-4">
+            <div class="p-4 bg-light border-start">
+                <h3 class=" mb-4">Instrucciones:</h3>
+                <div class="list-group list-group-flush">
+                    <p class="list-group-item">Evita que la fruta caiga al suelo.</p>
+                    <p class="list-group-item">Si tocas un pájaro, perderás 50 puntos.</p>
+                    <button id="start" type="button"
+                        class="list-group-item list-group-item-action active">¡Jugar!</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <footer class="container d-flex flex-row justify-content-center bg-success text-white">
