@@ -219,21 +219,8 @@ function getDistance(x1, y1, x2, y2) {
 }
 
 let fruits = [];
-for (let i = 0; i < 0; i++) {
-    let r = getRandomBetween(20, 50);
-    let x = Math.floor(Math.random() * (window_width - r * 2) + r);
-    let y = Math.floor(Math.random() * (window_height - r * 2) + r);
-    let speed = getRandomBetween(1, 6);
-
-    console.log(`Fruit [${i + 1}] at: ${x}, ${y}`);
-
-    let idx = Math.floor(Math.random() * FRUITS.length);
-
-    let fruit = new Fruit(x, y, r, speed, idx);
-    fruits.push(fruit);
-}
-
 let trees = [];
+
 for (let i = 0; i < 4; i++) {
     let factor = getRandomBetween(0.3, 0.6);
     let idx = Math.floor(Math.random() * TREES.length);
@@ -353,6 +340,8 @@ let updateGame = function () {
             )
         ) {
             score -= 50;
+            mouseX = -1;
+            mouseY = -1;
         }
     });
 
