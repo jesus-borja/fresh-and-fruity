@@ -12,19 +12,32 @@ canvas.width = window_width;
 
 canvas.style.background = "url('assets/img/background.jpg') no-repeat center";
 
-const src = "assets/img/googly-a.png";
+const FRUITS = [
+    "assets/img/fruits/apple.png",
+    "assets/img/fruits/orange.png",
+    "assets/img/fruits/peach.png",
+    "assets/img/fruits/pear.png",
+];
 
-class Circle {
-    constructor(x, y, radius, color, text, speed, img) {
+const TREES = [
+    "assets/img/fruits/apple-tree.png",
+    "assets/img/fruits/orange-tree.png",
+    "assets/img/fruits/peach-tree.png",
+    "assets/img/fruits/pear-tree.png",
+];
+
+const TREE_WIDTH = 495;
+const TREE_HEIGHT = 600;
+
+class Fruit {
+    constructor(x, y, radius, speed, image) {
         this.posX = x;
         this.posY = y;
         this.radius = radius;
-        this.color = color;
-        this.text = text;
         this.speed = speed;
 
         this.img = new Image();
-        this.img.src = img;
+        this.img.src = image;
 
         this.dx = 1 * this.speed;
         this.dy = 1 * this.speed;
@@ -35,7 +48,6 @@ class Circle {
 
         context.beginPath();
         context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2, false);
-        // context.stroke();
 
         context.closePath();
         context.clip();
@@ -74,11 +86,44 @@ class Circle {
     }
 }
 
+class Tree {
+    constructor(x, y, imagePath, factor) {
+        this.x = x;
+        this.y = y;
+        this.factor = factor;
+        this.img = new Image();
+        this.img.src = imagePath;
+    }
+
+    draw(context) {
+        context.drawImage(
+            this.img,
+            this.x,
+            this.y,
+            495 * this.factor,
+            600 * this.factor
+        );
+    }
+
+    isOverlapping(rect) {
+        return !(
+            this.x + TREE_WIDTH * this.factor < rect.x ||
+            this.x > rect.x + TREE_WIDTH * rect.factor ||
+            this.y + TREE_HEIGHT * this.factor < rect.y ||
+            this.y > rect.y + TREE_WIDTH * rect.factor
+        );
+    }
+}
+
 function getRandomColor() {
     let red = Math.floor(Math.random() * 256);
     let green = Math.floor(Math.random() * 256);
     let blue = Math.floor(Math.random() * 256);
     return `rgb(${red}, ${green}, ${blue})`;
+}
+
+function getRandomBetween(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
 function getDistance(x1, y1, x2, y2) {
@@ -87,30 +132,45 @@ function getDistance(x1, y1, x2, y2) {
     return Math.sqrt(sqr1 + sqr2);
 }
 
-let circles = [];
-for (let i = 0; i < 15; i++) {
-    let radius = Math.floor(Math.random() * 100) + 20;
+let fruits = [];
+for (let i = 0; i < 5; i++) {
+    let radius = Math.floor(Math.random() * 50) + 20;
     let randomX = Math.floor(
         Math.random() * (window_width - radius * 2) + radius
     );
-    let randomY =
-        // window_height +
-        Math.floor(
-            Math.random() * /* 2 *  */ (window_height - radius * 2) + radius
-        );
+    let randomY = Math.floor(
+        Math.random() * (window_height - radius * 2) + radius
+    );
     let speed = Math.random() * 5 + 1;
 
-    console.log(`Circle[${i + 1}] at: ${randomX}, ${randomY}`);
-    let circle = new Circle(
-        randomX,
-        randomY,
-        radius,
-        "purple",
-        `${i + 1}`,
-        speed,
-        src
-    );
-    circles.push(circle);
+    console.log(`Fruit [${i + 1}] at: ${randomX}, ${randomY}`);
+
+    let img = Math.floor(Math.random() * FRUITS.length);
+
+    let fruit = new Fruit(randomX, randomY, radius, speed, FRUITS[img]);
+    fruits.push(fruit);
+}
+
+let trees = [];
+for (let i = 0; i < 3; i++) {
+    let factor = getRandomBetween(0.3, 0.6);
+    let img = Math.floor(Math.random() * TREES.length);
+    let overlap = false;
+    let newTree;
+    const MAX_ATTEMPTS = 100;
+    let attempt = 0;
+    do {
+        if (attempt >= MAX_ATTEMPTS) break;
+        let randomX = getRandomBetween(0, window_width - TREE_WIDTH);
+        let randomY = getRandomBetween(
+            window_height / 2,
+            window_height - TREE_HEIGHT
+        );
+        newTree = new Tree(randomX, randomY, TREES[img], factor);
+        overlap = trees.some((tree) => tree.isOverlapping(newTree));
+        attempt++;
+    } while (overlap);
+    trees.push(newTree);
 }
 
 let mouseX;
@@ -128,14 +188,14 @@ document.addEventListener("contextmenu", (e) => {
     x = Math.floor(e.clientX - canvas_rect.left);
     y = Math.floor(e.clientY - canvas_rect.top);
 
-    let newCircle = new Circle(x, y, 100, "red", "hey", 3, src);
-    circles.push(newCircle);
+    let newFruit = new Fruit(x, y, 100, "red", "hey", 3, src);
+    fruits.push(newFruit);
     mouseX = -1;
     mouseY = -1;
 });
 
-let updateCircle = function () {
-    requestAnimationFrame(updateCircle);
+let updateGame = function () {
+    requestAnimationFrame(updateGame);
 
     ctx.clearRect(0, 0, window_width, window_height);
 
@@ -145,57 +205,51 @@ let updateCircle = function () {
     ctx.fillText(`x: ${mouseX} y:${mouseY}`, 75, 15);
 
     let index = 0;
-    circles.forEach((circle) => {
-        circle.update(ctx);
-        circles.forEach((circle2) => {
+    fruits.forEach((fruit) => {
+        fruit.update(ctx);
+        fruits.forEach((fruit2) => {
             if (
-                circle !== circle2 &&
-                getDistance(
-                    circle.posX,
-                    circle.posY,
-                    circle2.posX,
-                    circle2.posY
-                ) <
-                    circle.radius + circle2.radius
+                fruit !== fruit2 &&
+                getDistance(fruit.posX, fruit.posY, fruit2.posX, fruit2.posY) <
+                    fruit.radius + fruit2.radius
             ) {
                 let color = getRandomColor();
-                circle.color = color;
-                circle2.color = color;
+                fruit.color = color;
+                fruit2.color = color;
 
                 // calcula el ángulo de colisión
-                let dx = circle2.posX - circle.posX;
-                let dy = circle2.posY - circle.posY;
+                let dx = fruit2.posX - fruit.posX;
+                let dy = fruit2.posY - fruit.posY;
                 let collisionAngle = Math.atan2(dy, dx);
 
-                circle.dx = -Math.cos(collisionAngle) * circle.speed;
-                circle.dy = -Math.sin(collisionAngle) * circle.speed;
+                fruit.dx = -Math.cos(collisionAngle) * fruit.speed;
+                fruit.dy = -Math.sin(collisionAngle) * fruit.speed;
             }
         });
 
         if (
-            getDistance(circle.posX, circle.posY, mouseX, mouseY) <
-            circle.radius
+            getDistance(fruit.posX, fruit.posY, mouseX, mouseY) < fruit.radius
         ) {
-            console.log(
-                // `Popped circle ${circle.text} at (${circle.posX}, ${circle.posY}) mouse shot at (${mouseX}, ${mouseY})`
-                "Popped circle mouse shot"
-            );
-            circle.color = getRandomColor();
-            circles.splice(index, 1);
+            console.log("Picked up fruit");
+            fruit.color = getRandomColor();
+            fruits.splice(index, 1);
             mouseX = -1;
             mouseY = -1;
         }
 
         // comprueba si el circulo ha salido del canvas
-        if (circle.posY + circle.radius <= 0) {
-            circles.splice(index, 1);
+        if (fruit.posY + fruit.radius <= 0) {
+            fruits.splice(index, 1);
             console.log(
-                `Popped circle ${circle.text} at (${circle.posX}, ${circle.posY}) cause flew too high`
+                `Removed fruit ${fruit.text} at (${fruit.posX}, ${fruit.posY}) cause flew too high`
             );
         }
 
         index++;
     });
+    trees.forEach((tree) => {
+        tree.draw(ctx);
+    });
 };
 
-updateCircle();
+updateGame();
