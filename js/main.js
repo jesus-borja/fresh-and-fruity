@@ -1,6 +1,10 @@
 const canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
+
 let score = 0;
+let maxScore = 0;
+let totalWonScore = 0;
+let crow_rareness = 0.995;
 
 const canvas_container = canvas.parentElement;
 const window_height = canvas_container.clientHeight;
@@ -180,7 +184,7 @@ class Crow {
     }
 
     draw(context) {
-        context.strokeRect(this.x, this.y, this.width, this.height);
+        // context.strokeRect(this.x, this.y, this.width, this.height);
         context.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
 
@@ -269,7 +273,7 @@ let updateGame = function () {
     });
 
     // Spawn crows
-    if (Math.random() > 0.995) {
+    if (Math.random() > crow_rareness) {
         let crow;
         if (Math.random() > 0.5) {
             let y = Math.floor((3 * (Math.random() * window_height)) / 4);
@@ -312,9 +316,16 @@ let updateGame = function () {
         ) {
             console.log("Picked up fruit");
             score += 10;
+            totalWonScore += 10;
+            if (score > maxScore) {
+                maxScore = score;
+            }
             fruits.splice(index, 1);
             mouseX = -1;
             mouseY = -1;
+            if (totalWonScore % 100 === 0) {
+                crow_rareness -= 0.005;
+            }
         }
 
         // comprueba si el circulo ha salido del canvas
@@ -351,6 +362,7 @@ let updateGame = function () {
 
     ctx.font = "48px Verdana";
     ctx.fillText(`Score: ${score}`, window_width / 2, 60);
+    ctx.fillText(`Max Score: ${maxScore}`, window_width / 2, 120);
 };
 
 updateGame();
