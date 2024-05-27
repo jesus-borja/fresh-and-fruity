@@ -11,6 +11,31 @@ canvas.width = window_width;
 
 canvas.style.background = "url('assets/img/background.jpg') no-repeat center";
 
+canvas.style.cursor = "none";
+
+class Cursor {
+    constructor(x, y, image) {
+        this.x = x;
+        this.y = y;
+        this.imagePath = image;
+        this.image = new Image();
+        this.image.src = this.imagePath;
+        this.radius = this.image.width / 3;
+    }
+
+    draw(context) {
+        context.drawImage(this.image, this.x, this.y);
+    }
+}
+
+const cursor = new Cursor(0, 0, "assets/img/cursors/hand_open.png");
+
+canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    cursor.x = e.clientX - rect.left - cursor.image.width / 3;
+    cursor.y = e.clientY - rect.top - cursor.image.height / 2;
+});
+
 const FRUITS = [
     "assets/img/fruits/apple.png",
     "assets/img/fruits/orange.png",
@@ -149,7 +174,7 @@ function getDistance(x1, y1, x2, y2) {
 }
 
 let fruits = [];
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 0; i++) {
     let r = getRandomBetween(20, 50);
     let x = Math.floor(Math.random() * (window_width - r * 2) + r);
     let y = Math.floor(Math.random() * (window_height - r * 2) + r);
@@ -164,7 +189,7 @@ for (let i = 0; i < 5; i++) {
 }
 
 let trees = [];
-for (let i = 0; i < 2; i++) {
+for (let i = 0; i < 3; i++) {
     let factor = getRandomBetween(0.3, 0.6);
     let idx = Math.floor(Math.random() * TREES.length);
     let overlap = false;
@@ -204,11 +229,6 @@ let updateGame = function () {
 
     ctx.clearRect(0, 0, window_width, window_height);
 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = "20px Arial";
-    ctx.fillText(`x: ${mouseX} y:${mouseY}`, 75, 15);
-
     trees.forEach((tree) => {
         tree.update(ctx);
     });
@@ -237,7 +257,8 @@ let updateGame = function () {
         });
 
         if (
-            getDistance(fruit.posX, fruit.posY, mouseX, mouseY) < fruit.radius
+            getDistance(fruit.posX, fruit.posY, mouseX, mouseY) <
+            fruit.radius + cursor.radius
         ) {
             console.log("Picked up fruit");
             fruit.color = getRandomColor();
@@ -256,6 +277,8 @@ let updateGame = function () {
 
         index++;
     });
+
+    cursor.draw(ctx);
 };
 
 updateGame();
