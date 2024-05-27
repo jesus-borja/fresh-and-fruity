@@ -10,9 +10,9 @@ const window_width = canvas_container.clientWidth; //* factor;
 canvas.height = window_height;
 canvas.width = window_width;
 
-canvas.style.background = "hsl(260, 50%, 80%)";
+canvas.style.background = "url('assets/img/background.jpg') no-repeat center";
 
-const src = "assets/img/googly-a-removebg.png";
+const src = "assets/img/googly-a.png";
 
 class Circle {
     constructor(x, y, radius, color, text, speed, img) {
