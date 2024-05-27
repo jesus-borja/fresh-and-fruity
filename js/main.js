@@ -1,11 +1,10 @@
 const canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
-// const factor = 2 / 3;
 //Obtiene las dimensiones de la pantalla actual
 const canvas_container = canvas.parentElement;
-const window_height = canvas_container.clientHeight; // * factor;
-const window_width = canvas_container.clientWidth; //* factor;
+const window_height = canvas_container.clientHeight;
+const window_width = canvas_container.clientWidth;
 
 canvas.height = window_height;
 canvas.width = window_width;
@@ -30,14 +29,14 @@ const TREE_WIDTH = 495;
 const TREE_HEIGHT = 600;
 
 class Fruit {
-    constructor(x, y, radius, speed, image) {
+    constructor(x, y, radius, speed, fruitIndex) {
         this.posX = x;
         this.posY = y;
         this.radius = radius;
         this.speed = speed;
 
         this.img = new Image();
-        this.img.src = image;
+        this.img.src = FRUITS[fruitIndex];
 
         this.dx = 1 * this.speed;
         this.dy = 1 * this.speed;
@@ -87,12 +86,14 @@ class Fruit {
 }
 
 class Tree {
-    constructor(x, y, imagePath, factor) {
+    constructor(x, y, treeIndex, factor, fruits) {
         this.x = x;
         this.y = y;
         this.factor = factor;
+        this.treeIndex = treeIndex;
         this.img = new Image();
-        this.img.src = imagePath;
+        this.img.src = TREES[treeIndex];
+        this.fruits = fruits;
     }
 
     draw(context) {
@@ -100,9 +101,24 @@ class Tree {
             this.img,
             this.x,
             this.y,
-            495 * this.factor,
-            600 * this.factor
+            TREE_WIDTH * this.factor,
+            TREE_HEIGHT * this.factor
         );
+    }
+
+    update(context) {
+        this.draw(context);
+        if (Math.random() < 0.015) {
+            let r = getRandomBetween(20, 80 * this.factor);
+            let x = getRandomBetween(this.x, this.x + TREE_WIDTH * this.factor);
+            let y = getRandomBetween(
+                this.y,
+                (this.y + TREE_HEIGHT * this.factor) / 2 + r
+            );
+            let s = getRandomBetween(1, 4);
+            let fruit = new Fruit(x, y, r, s, this.treeIndex);
+            fruits.push(fruit);
+        }
     }
 
     isOverlapping(rect) {
@@ -134,27 +150,23 @@ function getDistance(x1, y1, x2, y2) {
 
 let fruits = [];
 for (let i = 0; i < 5; i++) {
-    let radius = Math.floor(Math.random() * 50) + 20;
-    let randomX = Math.floor(
-        Math.random() * (window_width - radius * 2) + radius
-    );
-    let randomY = Math.floor(
-        Math.random() * (window_height - radius * 2) + radius
-    );
-    let speed = Math.random() * 5 + 1;
+    let r = getRandomBetween(20, 50);
+    let x = Math.floor(Math.random() * (window_width - r * 2) + r);
+    let y = Math.floor(Math.random() * (window_height - r * 2) + r);
+    let speed = getRandomBetween(1, 6);
 
-    console.log(`Fruit [${i + 1}] at: ${randomX}, ${randomY}`);
+    console.log(`Fruit [${i + 1}] at: ${x}, ${y}`);
 
-    let img = Math.floor(Math.random() * FRUITS.length);
+    let idx = Math.floor(Math.random() * FRUITS.length);
 
-    let fruit = new Fruit(randomX, randomY, radius, speed, FRUITS[img]);
+    let fruit = new Fruit(x, y, r, speed, idx);
     fruits.push(fruit);
 }
 
 let trees = [];
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 2; i++) {
     let factor = getRandomBetween(0.3, 0.6);
-    let img = Math.floor(Math.random() * TREES.length);
+    let idx = Math.floor(Math.random() * TREES.length);
     let overlap = false;
     let newTree;
     const MAX_ATTEMPTS = 100;
@@ -166,7 +178,7 @@ for (let i = 0; i < 3; i++) {
             window_height / 2,
             window_height - TREE_HEIGHT
         );
-        newTree = new Tree(randomX, randomY, TREES[img], factor);
+        newTree = new Tree(randomX, randomY, idx, factor);
         overlap = trees.some((tree) => tree.isOverlapping(newTree));
         attempt++;
     } while (overlap);
@@ -184,14 +196,7 @@ document.addEventListener("click", (e) => {
 
 document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
-    let canvas_rect = canvas.getBoundingClientRect();
-    x = Math.floor(e.clientX - canvas_rect.left);
-    y = Math.floor(e.clientY - canvas_rect.top);
-
-    let newFruit = new Fruit(x, y, 100, "red", "hey", 3, src);
-    fruits.push(newFruit);
-    mouseX = -1;
-    mouseY = -1;
+    fruits.length = 0;
 });
 
 let updateGame = function () {
@@ -203,6 +208,10 @@ let updateGame = function () {
     ctx.textBaseline = "middle";
     ctx.font = "20px Arial";
     ctx.fillText(`x: ${mouseX} y:${mouseY}`, 75, 15);
+
+    trees.forEach((tree) => {
+        tree.update(ctx);
+    });
 
     let index = 0;
     fruits.forEach((fruit) => {
@@ -246,9 +255,6 @@ let updateGame = function () {
         }
 
         index++;
-    });
-    trees.forEach((tree) => {
-        tree.draw(ctx);
     });
 };
 
