@@ -278,7 +278,7 @@ let updateGame = function () {
         if (Math.random() > 0.5) {
             let y = Math.floor((3 * (Math.random() * window_height)) / 4);
             let s = Math.floor(Math.random() * 8) + 2;
-            crow = new Crow(window_width + 300, y, CROW, s, -1);
+            crow = new Crow(window_width + 300, y, 150, 150, CROW, s, -1);
         } else {
             let y = Math.floor((3 * (Math.random() * window_height)) / 4);
             let s = Math.floor(Math.random() * 8) + 2;
