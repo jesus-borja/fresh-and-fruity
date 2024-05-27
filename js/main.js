@@ -167,9 +167,11 @@ class Tree {
 }
 
 class Crow {
-    constructor(x, y, image, speed, direction) {
+    constructor(x, y, width, height, image, speed, direction) {
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
         this.imagePath = image;
         this.image = new Image();
         this.image.src = this.imagePath;
@@ -178,7 +180,8 @@ class Crow {
     }
 
     draw(context) {
-        context.drawImage(this.image, this.x, this.y, 150, 150);
+        context.strokeRect(this.x, this.y, this.width, this.height);
+        context.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
 
     update(context) {
@@ -265,7 +268,8 @@ let updateGame = function () {
         tree.update(ctx);
     });
 
-    if (Math.random() > 0.99) {
+    // Spawn crows
+    if (Math.random() > 0.995) {
         let crow;
         if (Math.random() > 0.5) {
             let y = Math.floor((3 * (Math.random() * window_height)) / 4);
@@ -274,7 +278,7 @@ let updateGame = function () {
         } else {
             let y = Math.floor((3 * (Math.random() * window_height)) / 4);
             let s = Math.floor(Math.random() * 8) + 2;
-            crow = new Crow(-300, y, CROW, s, 1);
+            crow = new Crow(-300, y, 150, 150, CROW, s, 1);
         }
         crows.push(crow);
     }
@@ -335,8 +339,8 @@ let updateGame = function () {
                 cursor.radius,
                 crow.x,
                 crow.y,
-                crow.image.width,
-                crow.image.height
+                crow.width,
+                crow.height
             )
         ) {
             score -= 50;
