@@ -226,6 +226,7 @@ function getDistance(x1, y1, x2, y2) {
 }
 
 let fruits = [];
+
 let trees = [];
 
 for (let i = 0; i < 4; i++) {
@@ -363,6 +364,8 @@ let updateGame = function () {
     ctx.font = "48px Verdana";
     ctx.fillText(`Score: ${score}`, window_width / 2, 60);
     ctx.fillText(`Max Score: ${maxScore}`, window_width / 2, 120);
+    mouseX = -1;
+    mouseY = -1;
 };
 
 updateGame();
